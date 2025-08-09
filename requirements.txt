@@ -1,0 +1,7 @@
+flask
+redis
+flask-caching
+SQLAlchemy
+pandas
+flask_sqlalchemy
+psycopg2

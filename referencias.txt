@@ -1,0 +1,3 @@
+https://github.com/Shikha-code36/Flask-RedisCaching-in-Docker/blob/main/data.py
+
+https://pandeyshikha075.medium.com/flask-api-and-redis-caching-improving-speed-and-scalability-with-docker-c43629144279
