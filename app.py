@@ -71,7 +71,7 @@ def get_dado(codigo):
 
     if resultado:
         titulo = resultado[0]
-        redis_client.set(codigo, titulo)  # Salva no Redis
+        redis_client.set(codigo, titulo)  
         return jsonify({"codigo": codigo, "titulo": titulo, "origem": "postgres"})
     else:
         return jsonify({"erro": "Código não encontrado"}), 404
