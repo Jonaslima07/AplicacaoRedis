@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS cbo (
+    codigo VARCHAR(10) PRIMARY KEY,
+    titulo VARCHAR(255) NOT NULL
+);

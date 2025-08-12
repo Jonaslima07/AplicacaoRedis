@@ -1,7 +1,5 @@
-flask
-redis
-flask-caching
-SQLAlchemy
-pandas
-flask_sqlalchemy
+
+Flask
 psycopg2-binary
+redis
+>>>>>>> ddbb873 (feat: ajustes finais)

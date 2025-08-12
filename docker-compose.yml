@@ -8,9 +8,12 @@ services:
       POSTGRES_DB: cbo_sinonimos
     ports:
       - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
   redis:
-    image: redis:alpine
+    image: redis:7-alpine
     container_name: redis_cbo
     ports:
       - "6379:6379"
@@ -27,7 +30,17 @@ services:
       DATABASE_URL: postgresql+psycopg2://postgres:123456@postgres:5432/cbo_sinonimos
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      FLASK_APP: app
+      FLASK_ENV: development
     ports:
       - "5000:5000"
+<<<<<<< HEAD
     command: >
       sh -c "python load_csv_to_postgres.py && python app.py"
+=======
+    #volumes:
+    #  - ./app:/app
+
+volumes:
+  pgdata:
+>>>>>>> ddbb873 (feat: ajustes finais)
