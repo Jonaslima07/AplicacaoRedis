@@ -1,6 +1,6 @@
 import os
 import csv
-from flask import Flask, jsonify
+from flask import Flask, json, jsonify
 import psycopg2
 import redis
 
@@ -9,6 +9,8 @@ app = Flask(__name__)
 DATABASE_URL = os.getenv("DATABASE_URL")
 REDIS_HOST = os.getenv("REDIS_HOST", "redis")
 REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+
+CACHE_KEY_ALL = "cbo:all"
 
 redis_client = redis.StrictRedis(
     host=REDIS_HOST,
@@ -52,9 +54,33 @@ def importar_csv():
         if conexao:
             conexao.close()
 
+@app.route("/dados")
+def get_todos_dados():
+    
+    cache = redis_client.get(CACHE_KEY_ALL)
+    if cache:
+        return jsonify({"dados": json.loads(cache), "origem": "redis"})
+
+    
+    conexao = conexao_postgres()
+    if not conexao:
+        return jsonify({"erro": "Erro ao conectar ao banco de dados"}), 500
+
+    try:
+        with conexao.cursor() as cursor:
+            cursor.execute("SELECT codigo, titulo FROM cbo")
+            resultados = cursor.fetchall()
+            dados = [{"codigo": row[0], "titulo": row[1]} for row in resultados]
+
+        # Salva a lista toda no Redis com TTL, por exemplo 5 minutos (300 segundos)
+        redis_client.setex(CACHE_KEY_ALL, 300, json.dumps(dados))
+
+        return jsonify({"dados": dados, "origem": "postgres"})
+    finally:
+        conexao.close()
+
 @app.route("/dados/<codigo>")
 def get_dado(codigo):
-    
     titulo_cache = redis_client.get(codigo)
     if titulo_cache:
         return jsonify({"codigo": codigo, "titulo": titulo_cache, "origem": "redis"})
@@ -63,18 +89,20 @@ def get_dado(codigo):
     if not conexao:
         return jsonify({"erro": "Erro ao conectar ao banco de dados"}), 500
 
-    with conexao.cursor() as cursor:
-        cursor.execute("SELECT titulo FROM cbo WHERE codigo = %s", (codigo,))
-        resultado = cursor.fetchone()
+    try:
+        with conexao.cursor() as cursor:
+            cursor.execute("SELECT titulo FROM cbo WHERE codigo = %s", (codigo,))
+            resultado = cursor.fetchone()
 
-    conexao.close()
+        if resultado:
+            titulo = resultado[0]
+            redis_client.set(codigo, titulo)
+            return jsonify({"codigo": codigo, "titulo": titulo, "origem": "postgres"})
+        else:
+            return jsonify({"erro": "Código não encontrado"}), 404
+    finally:
+        conexao.close()
 
-    if resultado:
-        titulo = resultado[0]
-        redis_client.set(codigo, titulo)  
-        return jsonify({"codigo": codigo, "titulo": titulo, "origem": "postgres"})
-    else:
-        return jsonify({"erro": "Código não encontrado"}), 404
 
 if __name__ == "__main__":
     importar_csv()
