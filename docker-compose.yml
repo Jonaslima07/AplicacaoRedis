@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123456
-      POSTGRES_DB: cbo_sinonimos
+      POSTGRES_DB: cbos
     ports:
       - "5432:5432"
     volumes:
@@ -27,7 +27,7 @@ services:
       - postgres
       - redis
     environment:
-      DATABASE_URL: postgresql://postgres:123456@postgres:5432/cbo_sinonimos
+      DATABASE_URL: postgresql://postgres:123456@postgres:5432/cbos
       REDIS_HOST: redis
       REDIS_PORT: 6379
       FLASK_APP: app
